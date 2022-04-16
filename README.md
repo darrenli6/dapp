@@ -34,3 +34,29 @@ require('dotenv').config();
 ```
 
 
+
+- truffle 操作
+
+```
+truffle compile 
+truffle migrate 
+
+```
+
+  - truffle console 控制台操作
+    ```
+    const token =await Token.deployed()
+    undefined
+    truffle(development)> token
+    truffle(development)> token.address
+    '0xeE5178Ae620A299B2a0BDb8e560F9f80f3D5bd54'
+
+    ```  
+## 测试 mochajs工具
+
+https://mochajs.org/
+
+
+
+
+
