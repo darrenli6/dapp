@@ -21,6 +21,9 @@ contract Exchange{
     mapping(uint256=>bool) public orderCancelled;
 
 
+    mapping(uint256 => bool) public orderFilled;
+
+
     // Event 
     event Deposit(address token,address user,uint256 amount,uint256 balance);
     event Withdraw(address token,address user,uint256 amount,uint256 balance);
@@ -42,6 +45,18 @@ contract Exchange{
         uint256 amountGive,
         uint256 timestamp
     );
+
+        event Trade(
+        uint256 id,
+        address user,
+        address tokenGet,
+        uint256 amountGet,
+        address tokenGive,
+        uint256 amountGive,
+        address userFill,
+        uint256 timestamp
+    );
+
 
 
 
@@ -118,6 +133,43 @@ contract Exchange{
        emit Cancel(_order.id,msg.sender,_order.tokenGet,_order.amountGet,_order.tokenGive,_order.amountGive,now);
  
    }
+
+   function fillOrder(uint256 _id) public{
+       require(_id>0 && _id<= orderCount ,"Error id ");
+       require(!orderFilled[_id],"order has already");
+       require(!orderCancelled[_id],"order has canceled");
+       _Order storage _order =orders[_id];
+
+       _trade(_order.id, _order.user, _order.tokenGet, _order.amountGet, _order.tokenGive, _order.amountGive);
+        orderFilled[_order.id] = true;
+
+   }
+
+   function _trade(uint256 _orderId,
+         address _user,
+         address _tokenGet,
+         uint256 _amountGet,
+         address _tokenGive,
+         uint256 _amountGive
+    ) internal {
+
+          // Fee paid by the user that fills the order, a.k.a. msg.sender.
+        uint256 _feeAmount = _amountGet.mul(feePercent).div(100);
+        // 我的减去  我触发 我自己要掏手续费
+        tokens[_tokenGet][msg.sender] = tokens[_tokenGet][msg.sender].sub(_amountGet.add(_feeAmount));
+        // 别的用户加上
+        tokens[_tokenGet][_user] = tokens[_tokenGet][_user].add(_amountGet);
+       // 手续费加上，手续费账
+        tokens[_tokenGet][feeAccount] = tokens[_tokenGet][feeAccount].add(_feeAmount);
+       // 别的用户减去
+        tokens[_tokenGive][_user] = tokens[_tokenGive][_user].sub(_amountGive);
+        // 我的加上
+        tokens[_tokenGive][msg.sender] = tokens[_tokenGive][msg.sender].add(_amountGive);
+
+        emit Trade(_orderId, _user, _tokenGet, _amountGet, _tokenGive, _amountGive, msg.sender, now);
+
+
+    }
     
 
 

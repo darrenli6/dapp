@@ -10,7 +10,7 @@ require('chai')
 .should()
 
 
-contract('Exchange',([deployer,feeAccount,user1,user2])=>{
+contract('Exchange',([deployer,feeAccount,user1,user2,rebalancer])=>{
 
        let token 
        let exchange 
@@ -169,6 +169,45 @@ contract('Exchange',([deployer,feeAccount,user1,user2])=>{
          })
 
        })
+
+
+    describe('fillOrder()', ()=>{
+        describe('check balance after filling user1',  () => { 
+           
+            beforeEach(async ()=>{
+            // 存以太
+            await exchange.depositEther({from:user1,value:ether(1)});
+            
+            // 下订单
+            await exchange.makeOrder(token.address,tokens(10),ETHER_ADDRESS,ether(1),{from : user1});
+            // 得到 token
+
+            // 让user2有钱 
+            await token.transfer(user2,tokens(11),{from:deployer});
+
+            // user2将token打入交易所
+            await token.approve(exchange.address,tokens(11),{from:user2})
+            // user2转给
+            await exchange.depositToken(token.address,tokens(11),{from:user2})
+
+            // 下单接盘user1的订单
+            await exchange.fillOrder('1',{from:user2})
+
+        })
+
+
+        it('user1 get token 10 ',async()=>{
+            await (await exchange.balanceOf(token.address,user1)).toString().should.eq(tokens(10).toString())
+        })
+
+        it("user1 eth eq 0",async()=>{
+           await (await exchange.balanceOf(ETHER_ADDRESS,user1)).toString().should.eq(ether(0).toString())
+        })
+     })
+
+
+
+    });
 
 
 
