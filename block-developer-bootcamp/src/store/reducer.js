@@ -14,7 +14,7 @@ function web3(state={},action){
 function token(state={},action){
    switch(action.type){
        case 'TOKEN_LOADED':
-           return {...state,contract: action.contract}
+           return {...state,loaded:true , contract: action.contract}
        default:return state
    }    
 }
@@ -22,13 +22,20 @@ function token(state={},action){
 function exchange(state={},action){
     switch(action.type){
         case 'EXCHANGE_LOADED':
-            return {...state,contract: action.contract}
+            return {...state,loaded:true,contract: action.contract}
+        case 'CANCELLED_ORDERS_LOADED':
+            return {...state,cancelledOrders:{loaded:true,data:action.cancelledOrders}}    
         default:return state
     }    
  }
 
+
+
+
 const rootReducer =combineReducers ({
-    web3,token,exchange
+    web3,
+    token,
+    exchange
 })
 
 export default rootReducer

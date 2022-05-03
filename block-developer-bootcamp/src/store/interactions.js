@@ -1,5 +1,5 @@
 import Web3 from 'web3'
-import { web3Loaded,web3AccountLoaded, tokenLoaded, exchangeLoaded
+import { web3Loaded,web3AccountLoaded, tokenLoaded, exchangeLoaded,cancelledOrdersLoaded
 
 } from "./actions"
 import Token from '../abis/Token.json'
@@ -23,7 +23,7 @@ export const loadToken = async (web3,networkId,dispatch) =>{
         dispatch(tokenLoaded(token))
         return token
     }catch(error){
-       window.alert("Contract not deployed to the current network")
+       console.log("Token  Contract not deployed to the current network")
        return null
     }
    
@@ -37,9 +37,46 @@ export const loadExchange = async (web3,networkId,dispatch) =>{
         dispatch(exchangeLoaded(exchange))
         return exchange
     }catch(error){
-       window.alert("Contract not deployed to the current network")
+        console.log("Contract not deployed to the current network")
        return null
     }
    
     
+}
+
+
+export const loadAllOrders =async(exchange,dispatch) =>{
+    // fetch cancelled orders with 
+    const cancelStream =await exchange.getPastEvents('Cancel',{fromBlock:0,toBlock:'latest'})
+    
+    const cancelledOrders = cancelStream.map((event)=> event.returnValues)
+    // 将cancelled order 加入redux store中
+    dispatch(cancelledOrdersLoaded(cancelledOrders))
+
+    
+    const tradeStream =await exchange.getPastEvents('Trade',{fromBlock:0,toBlock:'latest'})
+    
+    const filledorders = tradeStream.map((event)=> event.returnValues)
+   
+    dispatch(filledOrdersLoaded(filledorders))
+
+
+
+    const orderStream =await exchange.getPastEvents('Order',{fromBlock:0,toBlock:'latest'})
+    
+    const allorders = orderStream.map((event)=> event.returnValues)
+   
+    dispatch(allOrdersLoaded(allorders))
+
+    
+
+
+
+
+
+
+
+    //fetch filled orders with the trade event stream
+
+
 }
